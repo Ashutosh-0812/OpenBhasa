@@ -14,7 +14,7 @@ connectDB();
 app.use(express.json());
 app.use(cookieParser());
 // Configure CORS to allow the frontend origin and credentials (cookies)
-const FRONTEND_ORIGIN = process.env.CLIENT_URL || 'https://openbhasa.onrender.com'
+const FRONTEND_ORIGIN = process.env.CLIENT_URL || 'https://openbhasa-frontend.onrender.com'
 app.use(
   cors({
     origin: (origin, callback) => {
