@@ -261,7 +261,7 @@ const Register = () => {
     if (!validateForm()) return;
 
     try {
-      await dispatch(
+      const result = await dispatch(
         registerUser({
           name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
           email: formData.email.trim().toLowerCase(),
@@ -280,7 +280,9 @@ const Register = () => {
         })
       ).unwrap();
 
-      setRegistrationSuccess(true);
+      // If backend returns a redirectTo path, navigate there (fallback to student dashboard)
+      const redirectPath = result?.redirectTo || '/student/dashboard';
+      navigate(redirectPath);
     } catch (error) {
       // Error is handled by Redux state
     }
