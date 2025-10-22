@@ -560,7 +560,7 @@ const AudioRecorder = ({
           <DialogTitle>Submit Recording</DialogTitle>
           <DialogContent>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   multiline
@@ -574,7 +574,7 @@ const AudioRecorder = ({
 
               {userRole === "participant" && (
                 <>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       label="Accent"
@@ -584,7 +584,7 @@ const AudioRecorder = ({
                     />
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       label="Dialect"
@@ -597,7 +597,7 @@ const AudioRecorder = ({
               )}
 
               {showQualityControls && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth>
                     <InputLabel>Recording Quality</InputLabel>
                     <Select

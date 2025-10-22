@@ -187,7 +187,7 @@ const ParticipantDashboard = () => {
       {/* Rewards Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Total Coins Card */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Box
             className="reward-card coin-card"
             sx={{ boxShadow: "0 3px 8px rgba(0,0,0,0.05)" }}
@@ -214,7 +214,7 @@ const ParticipantDashboard = () => {
         </Grid>
 
         {/* Day Streak Card */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Box
             className="reward-card streak-card"
             sx={{ boxShadow: "0 3px 8px rgba(0,0,0,0.05)" }}
@@ -241,7 +241,7 @@ const ParticipantDashboard = () => {
         </Grid>
 
         {/* Level Card */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Box
             className="reward-card level-card"
             sx={{ boxShadow: "0 3px 8px rgba(0,0,0,0.05)" }}
@@ -269,7 +269,7 @@ const ParticipantDashboard = () => {
         </Grid>
 
         {/* Achievements Card */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Box
             className="reward-card achievement-card"
             sx={{ boxShadow: "0 3px 8px rgba(0,0,0,0.05)" }}
@@ -364,7 +364,7 @@ const ParticipantDashboard = () => {
         </Typography>
         <Grid container spacing={3}>
           {displayTasks.map((task) => (
-            <Grid item xs={12} sm={6} md={4} key={task.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={task.id}>
               <Card
                 elevation={0}
                 sx={{

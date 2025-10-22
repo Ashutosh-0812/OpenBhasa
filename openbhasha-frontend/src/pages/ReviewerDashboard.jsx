@@ -42,7 +42,7 @@ import {
   Tab,
   AppBar,
   Toolbar,
-  Badge
+  Badge,
 } from "@mui/material";
 import {
   PlayArrow,
@@ -69,7 +69,7 @@ import {
   Home,
   Queue,
   Analytics,
-  Logout
+  Logout,
 } from "@mui/icons-material";
 import {
   fetchPendingAudios,
@@ -105,8 +105,8 @@ const ReviewerDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   // Mock data for demo
@@ -120,7 +120,7 @@ const ReviewerDashboard = () => {
       duration: "00:02:45",
       status: "pending",
       taskTitle: "Hindi Folk Tales",
-      priority: "high"
+      priority: "high",
     },
     {
       id: 2,
@@ -131,7 +131,7 @@ const ReviewerDashboard = () => {
       duration: "00:01:30",
       status: "pending",
       taskTitle: "Bengali Poetry Collection",
-      priority: "medium"
+      priority: "medium",
     },
     {
       id: 3,
@@ -142,11 +142,12 @@ const ReviewerDashboard = () => {
       duration: "00:03:20",
       status: "pending",
       taskTitle: "Gujarati Conversations",
-      priority: "low"
-    }
+      priority: "low",
+    },
   ];
 
-  const displayAudios = pendingAudios?.length > 0 ? pendingAudios : mockPendingAudios;
+  const displayAudios =
+    pendingAudios?.length > 0 ? pendingAudios : mockPendingAudios;
 
   // Calculate reviewer statistics
   const getReviewerStats = () => {
@@ -155,31 +156,38 @@ const ReviewerDashboard = () => {
       weeklyReviews: 89,
       totalReviews: 1543,
       averageRating: 4.2,
-      pendingCount: displayAudios.filter(audio => audio.status === 'pending').length,
+      pendingCount: displayAudios.filter((audio) => audio.status === "pending")
+        .length,
       approvedToday: 8,
       rejectedToday: 2,
-      flaggedToday: 2
+      flaggedToday: 2,
     };
   };
 
   const stats = getReviewerStats();
 
   const handleReviewSubmit = (audioId, verdict, rating, comments) => {
-    dispatch(submitReviewVerdict({
-      audioId,
-      verdict,
-      rating,
-      comments
-    }));
+    dispatch(
+      submitReviewVerdict({
+        audioId,
+        verdict,
+        rating,
+        comments,
+      })
+    );
     setReviewDialog(null);
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'error';
-      case 'medium': return 'warning';
-      case 'low': return 'success';
-      default: return 'default';
+      case "high":
+        return "error";
+      case "medium":
+        return "warning";
+      case "low":
+        return "success";
+      default:
+        return "default";
     }
   };
 
@@ -194,16 +202,26 @@ const ReviewerDashboard = () => {
                 Reviewer Dashboard
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Welcome back, {user?.name || 'Reviewer'} 👋 Review and approve audio submissions
+                Welcome back, {user?.name || "Reviewer"} 👋 Review and approve
+                audio submissions
               </Typography>
             </Box>
 
             {/* Stats Cards */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card elevation={0}>
-                  <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                    <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 48, height: 48, mx: 'auto', mb: 2 }}>
+                  <CardContent sx={{ textAlign: "center", p: 3 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: "primary.light",
+                        color: "primary.main",
+                        width: 48,
+                        height: 48,
+                        mx: "auto",
+                        mb: 2,
+                      }}
+                    >
                       <CheckCircle />
                     </Avatar>
                     <Typography variant="h4" component="div">
@@ -216,10 +234,19 @@ const ReviewerDashboard = () => {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card elevation={0}>
-                  <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                    <Avatar sx={{ bgcolor: 'warning.light', color: 'warning.main', width: 48, height: 48, mx: 'auto', mb: 2 }}>
+                  <CardContent sx={{ textAlign: "center", p: 3 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: "warning.light",
+                        color: "warning.main",
+                        width: 48,
+                        height: 48,
+                        mx: "auto",
+                        mb: 2,
+                      }}
+                    >
                       <Schedule />
                     </Avatar>
                     <Typography variant="h4" component="div">
@@ -232,10 +259,19 @@ const ReviewerDashboard = () => {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card elevation={0}>
-                  <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                    <Avatar sx={{ bgcolor: 'success.light', color: 'success.main', width: 48, height: 48, mx: 'auto', mb: 2 }}>
+                  <CardContent sx={{ textAlign: "center", p: 3 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: "success.light",
+                        color: "success.main",
+                        width: 48,
+                        height: 48,
+                        mx: "auto",
+                        mb: 2,
+                      }}
+                    >
                       <Star />
                     </Avatar>
                     <Typography variant="h4" component="div">
@@ -248,10 +284,19 @@ const ReviewerDashboard = () => {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card elevation={0}>
-                  <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                    <Avatar sx={{ bgcolor: 'info.light', color: 'info.main', width: 48, height: 48, mx: 'auto', mb: 2 }}>
+                  <CardContent sx={{ textAlign: "center", p: 3 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: "info.light",
+                        color: "info.main",
+                        width: 48,
+                        height: 48,
+                        mx: "auto",
+                        mb: 2,
+                      }}
+                    >
                       <TrendingUp />
                     </Avatar>
                     <Typography variant="h4" component="div">
@@ -270,11 +315,19 @@ const ReviewerDashboard = () => {
               <Typography variant="h2" component="h2" sx={{ mb: 2 }}>
                 Quick Actions
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <Button variant="contained" startIcon={<Queue />} onClick={() => setActiveTab(1)}>
+              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Queue />}
+                  onClick={() => setActiveTab(1)}
+                >
                   Review Queue
                 </Button>
-                <Button variant="outlined" startIcon={<Analytics />} onClick={() => setActiveTab(2)}>
+                <Button
+                  variant="outlined"
+                  startIcon={<Analytics />}
+                  onClick={() => setActiveTab(2)}
+                >
                   View Analytics
                 </Button>
               </Box>
@@ -286,8 +339,11 @@ const ReviewerDashboard = () => {
                 Today's Activity
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: 'success.light', borderRadius: 2 }}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper
+                    elevation={0}
+                    sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}
+                  >
                     <Typography variant="h6" color="success.main">
                       {stats.approvedToday} Approved
                     </Typography>
@@ -296,8 +352,11 @@ const ReviewerDashboard = () => {
                     </Typography>
                   </Paper>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: 'error.light', borderRadius: 2 }}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper
+                    elevation={0}
+                    sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}
+                  >
                     <Typography variant="h6" color="error.main">
                       {stats.rejectedToday} Rejected
                     </Typography>
@@ -306,8 +365,11 @@ const ReviewerDashboard = () => {
                     </Typography>
                   </Paper>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Paper elevation={0} sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Paper
+                    elevation={0}
+                    sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}
+                  >
                     <Typography variant="h6" color="warning.main">
                       {stats.flaggedToday} Flagged
                     </Typography>
@@ -327,24 +389,34 @@ const ReviewerDashboard = () => {
             <Typography variant="h2" component="h2" sx={{ mb: 3 }}>
               Audio Review Queue
             </Typography>
-            
+
             {loading && <LinearProgress sx={{ mb: 2 }} />}
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
 
             {/* Filters */}
-            <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ mb: 3, display: "flex", gap: 2, flexWrap: "wrap" }}>
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel>Status</InputLabel>
-                <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                <Select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                >
                   <MenuItem value="all">All</MenuItem>
                   <MenuItem value="pending">Pending</MenuItem>
                   <MenuItem value="reviewed">Reviewed</MenuItem>
                 </Select>
               </FormControl>
-              
+
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel>Language</InputLabel>
-                <Select value={filterLanguage} onChange={(e) => setFilterLanguage(e.target.value)}>
+                <Select
+                  value={filterLanguage}
+                  onChange={(e) => setFilterLanguage(e.target.value)}
+                >
                   <MenuItem value="all">All Languages</MenuItem>
                   <MenuItem value="Hindi">Hindi</MenuItem>
                   <MenuItem value="Bengali">Bengali</MenuItem>
@@ -358,7 +430,9 @@ const ReviewerDashboard = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 InputProps={{
-                  startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
+                  startAdornment: (
+                    <Search sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
                 }}
               />
             </Box>
@@ -381,34 +455,42 @@ const ReviewerDashboard = () => {
                   {displayAudios.map((audio) => (
                     <TableRow key={audio.id} hover>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           <VolumeUp fontSize="small" />
-                          <Typography variant="body2">{audio.fileName}</Typography>
+                          <Typography variant="body2">
+                            {audio.fileName}
+                          </Typography>
                         </Box>
                       </TableCell>
                       <TableCell>
-                        <Chip label={audio.language} size="small" variant="outlined" />
+                        <Chip
+                          label={audio.language}
+                          size="small"
+                          variant="outlined"
+                        />
                       </TableCell>
                       <TableCell>{audio.contributor}</TableCell>
                       <TableCell>{audio.duration}</TableCell>
                       <TableCell>
-                        <Chip 
-                          label={audio.priority} 
-                          size="small" 
+                        <Chip
+                          label={audio.priority}
+                          size="small"
                           color={getPriorityColor(audio.priority)}
                         />
                       </TableCell>
                       <TableCell>{audio.uploadDate}</TableCell>
                       <TableCell>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box sx={{ display: "flex", gap: 1 }}>
                           <Tooltip title="Play Audio">
                             <IconButton size="small" color="primary">
                               <PlayArrow />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Review">
-                            <IconButton 
-                              size="small" 
+                            <IconButton
+                              size="small"
                               color="success"
                               onClick={() => setReviewDialog(audio)}
                             >
@@ -436,8 +518,18 @@ const ReviewerDashboard = () => {
             <Typography variant="h2" component="h2" sx={{ mb: 3 }}>
               Review Analytics
             </Typography>
-            <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50', borderRadius: 2 }}>
-              <Analytics sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+            <Paper
+              elevation={0}
+              sx={{
+                p: 4,
+                textAlign: "center",
+                bgcolor: "grey.50",
+                borderRadius: 2,
+              }}
+            >
+              <Analytics
+                sx={{ fontSize: 48, color: "text.secondary", mb: 2 }}
+              />
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 Analytics Dashboard
               </Typography>
@@ -454,9 +546,9 @@ const ReviewerDashboard = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       {/* Header Bar */}
-      <AppBar position="sticky" elevation={1} sx={{ bgcolor: 'primary.main' }}>
+      <AppBar position="sticky" elevation={1} sx={{ bgcolor: "primary.main" }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             OpenBhasha
@@ -466,38 +558,38 @@ const ReviewerDashboard = () => {
             value={activeTab}
             onChange={handleTabChange}
             sx={{
-              minHeight: 'auto',
-              '& .MuiTab-root': {
-                color: 'rgba(255,255,255,0.7)',
-                '&.Mui-selected': { color: 'white' },
+              minHeight: "auto",
+              "& .MuiTab-root": {
+                color: "rgba(255,255,255,0.7)",
+                "&.Mui-selected": { color: "white" },
               },
-              '& .MuiTabs-indicator': { backgroundColor: 'secondary.main' },
+              "& .MuiTabs-indicator": { backgroundColor: "secondary.main" },
             }}
           >
             <Tab icon={<Home />} label="Dashboard" />
-            <Tab 
+            <Tab
               icon={
                 <Badge badgeContent={stats.pendingCount} color="error">
                   <Queue />
                 </Badge>
-              } 
-              label="Review Queue" 
+              }
+              label="Review Queue"
             />
             <Tab icon={<Analytics />} label="Analytics" />
           </Tabs>
 
-          <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ ml: 2, display: "flex", alignItems: "center", gap: 1 }}>
             <Avatar
               sx={{
                 width: 32,
                 height: 32,
-                bgcolor: 'secondary.main',
-                color: 'primary.main',
+                bgcolor: "secondary.main",
+                color: "primary.main",
               }}
             >
-              {user?.name?.charAt(0) || 'R'}
+              {user?.name?.charAt(0) || "R"}
             </Avatar>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
               Reviewer
             </Typography>
             <IconButton color="inherit" onClick={handleLogout}>
@@ -508,13 +600,11 @@ const ReviewerDashboard = () => {
       </AppBar>
 
       {/* Main Content */}
-      <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
-        {renderTabContent()}
-      </Box>
+      <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>{renderTabContent()}</Box>
 
       {/* Review Dialog */}
-      <Dialog 
-        open={reviewDialog !== null} 
+      <Dialog
+        open={reviewDialog !== null}
         onClose={() => setReviewDialog(null)}
         maxWidth="sm"
         fullWidth
@@ -535,12 +625,12 @@ const ReviewerDashboard = () => {
               <Typography variant="body2" sx={{ mb: 2 }}>
                 <strong>Duration:</strong> {reviewDialog.duration}
               </Typography>
-              
+
               <Typography variant="body2" gutterBottom>
                 Quality Rating:
               </Typography>
               <Rating defaultValue={4} sx={{ mb: 2 }} />
-              
+
               <TextField
                 fullWidth
                 multiline
@@ -553,8 +643,12 @@ const ReviewerDashboard = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setReviewDialog(null)}>Cancel</Button>
-          <Button variant="outlined" color="error">Reject</Button>
-          <Button variant="contained" color="success">Approve</Button>
+          <Button variant="outlined" color="error">
+            Reject
+          </Button>
+          <Button variant="contained" color="success">
+            Approve
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

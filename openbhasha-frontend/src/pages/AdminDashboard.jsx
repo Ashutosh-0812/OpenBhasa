@@ -49,26 +49,26 @@ const AdminDashboard = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       <Header userRole="admin" />
 
-      <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
+      <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>
         {/* Welcome Section */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h1" component="h1" gutterBottom>
             Admin Dashboard
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Welcome back, {user?.name || 'Admin'} 👋
+            Welcome back, {user?.name || "Admin"} 👋
           </Typography>
         </Box>
 
         {/* Quick Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card elevation={0}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <People sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
+              <CardContent sx={{ textAlign: "center" }}>
+                <People sx={{ fontSize: 48, color: "primary.main", mb: 1 }} />
                 <Typography variant="h4" color="primary.main">
                   {stats.totalUsers}
                 </Typography>
@@ -79,10 +79,12 @@ const AdminDashboard = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card elevation={0}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <Assignment sx={{ fontSize: 48, color: 'secondary.main', mb: 1 }} />
+              <CardContent sx={{ textAlign: "center" }}>
+                <Assignment
+                  sx={{ fontSize: 48, color: "secondary.main", mb: 1 }}
+                />
                 <Typography variant="h4" color="secondary.main">
                   {stats.totalTasks}
                 </Typography>
@@ -93,10 +95,12 @@ const AdminDashboard = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card elevation={0}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <Analytics sx={{ fontSize: 48, color: 'success.main', mb: 1 }} />
+              <CardContent sx={{ textAlign: "center" }}>
+                <Analytics
+                  sx={{ fontSize: 48, color: "success.main", mb: 1 }}
+                />
                 <Typography variant="h4" color="success.main">
                   {stats.totalRecordings}
                 </Typography>
@@ -107,10 +111,10 @@ const AdminDashboard = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card elevation={0}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <Settings sx={{ fontSize: 48, color: 'warning.main', mb: 1 }} />
+              <CardContent sx={{ textAlign: "center" }}>
+                <Settings sx={{ fontSize: 48, color: "warning.main", mb: 1 }} />
                 <Typography variant="h4" color="warning.main">
                   {stats.activeTasks}
                 </Typography>
@@ -127,14 +131,26 @@ const AdminDashboard = () => {
           <Typography variant="h2" component="h2" sx={{ mb: 3 }}>
             Quick Actions
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Button variant="contained" startIcon={<Add />} onClick={handleCreateTask}>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={handleCreateTask}
+            >
               Create Task
             </Button>
-            <Button variant="outlined" startIcon={<People />} onClick={handleCreateUser}>
+            <Button
+              variant="outlined"
+              startIcon={<People />}
+              onClick={handleCreateUser}
+            >
               Manage Users
             </Button>
-            <Button variant="outlined" startIcon={<Analytics />} onClick={handleViewAnalytics}>
+            <Button
+              variant="outlined"
+              startIcon={<Analytics />}
+              onClick={handleViewAnalytics}
+            >
               View Analytics
             </Button>
           </Box>

@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -29,6 +29,15 @@ import {
   TextField,
   Snackbar,
   Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import {
   PlayArrow,
@@ -51,8 +60,16 @@ import {
   TrendingUp,
   EmojiEvents,
   LocalFireDepartment,
+  Link,
+  CheckCircleOutline,
+  PendingActions,
+  AccessTimeOutlined,
+  Share,
+  RefreshOutlined,
 } from "@mui/icons-material";
 import { fetchTasks } from "../features/tasks/taskSlice";
+import ParticipantInviteDialog from "../components/ParticipantInviteDialog";
+import { participantInviteAPI } from "../api/apiClient";
 
 const StudentDashboard = () => {
   const dispatch = useDispatch();
@@ -67,6 +84,10 @@ const StudentDashboard = () => {
     message: "",
     type: "success",
   });
+
+  // Participant Invite State
+  const [participantInvites, setParticipantInvites] = useState([]);
+  const [invitesLoading, setInvitesLoading] = useState(false);
 
   // Rewards System State
   const [userRewards, setUserRewards] = useState({
@@ -83,7 +104,86 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     dispatch(fetchTasks());
+    fetchParticipantInvites();
   }, [dispatch]);
+
+  // Fetch participant invites
+  const fetchParticipantInvites = async () => {
+    try {
+      setInvitesLoading(true);
+      const response = await participantInviteAPI.getMyInvites();
+      setParticipantInvites(response.data.invites || []);
+    } catch (error) {
+      console.error("Failed to fetch invites:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch participant invites",
+        type: "error",
+      });
+      setParticipantInvites([]); // Set empty array on error
+    } finally {
+      setInvitesLoading(false);
+    }
+  };
+
+  // Handle participant invite creation
+  const handleInviteCreated = (newInvite) => {
+    setParticipantInvites((prev) => [newInvite.invite, ...prev]);
+    setInviteDialog(false);
+    setSnackbar({
+      open: true,
+      message: `Invite created for ${newInvite.invite.participantName}`,
+      type: "success",
+    });
+  };
+
+  // Handle copying invite link
+  const handleCopyInviteLink = async (inviteLink, participantName) => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setSnackbar({
+        open: true,
+        message: `Link copied for ${participantName}`,
+        type: "success",
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to copy link",
+        type: "error",
+      });
+    }
+  };
+
+  // Get status color and icon
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case "pending":
+        return {
+          color: "warning",
+          icon: <PendingActions />,
+          text: "Pending",
+        };
+      case "accepted":
+        return {
+          color: "success",
+          icon: <CheckCircleOutline />,
+          text: "Registered",
+        };
+      case "expired":
+        return {
+          color: "error",
+          icon: <AccessTimeOutlined />,
+          text: "Expired",
+        };
+      default:
+        return {
+          color: "default",
+          icon: <PendingActions />,
+          text: status,
+        };
+    }
+  };
 
   // Mock achievements and rewards data
   const mockAchievements = [
@@ -92,7 +192,7 @@ const StudentDashboard = () => {
       title: "First Recording",
       description: "Complete your first audio recording",
       coins: 50,
-      icon: "🎤",
+      icon: "??",
       earned: true,
       earnedDate: "2024-01-10",
     },
@@ -101,7 +201,7 @@ const StudentDashboard = () => {
       title: "Week Warrior",
       description: "Complete recordings for 7 consecutive days",
       coins: 200,
-      icon: "🔥",
+      icon: "??",
       earned: true,
       earnedDate: "2024-01-16",
     },
@@ -110,7 +210,7 @@ const StudentDashboard = () => {
       title: "Language Explorer",
       description: "Record in 3 different languages",
       coins: 300,
-      icon: "🌍",
+      icon: "??",
       earned: true,
       earnedDate: "2024-01-15",
     },
@@ -119,7 +219,7 @@ const StudentDashboard = () => {
       title: "Quality Champion",
       description: "Get 10 recordings verified in a row",
       coins: 500,
-      icon: "⭐",
+      icon: "?",
       earned: false,
       progress: "8/10",
     },
@@ -128,7 +228,7 @@ const StudentDashboard = () => {
       title: "Team Builder",
       description: "Invite 5 participants to join",
       coins: 400,
-      icon: "👥",
+      icon: "??",
       earned: false,
       progress: "3/5",
     },
@@ -344,7 +444,7 @@ const StudentDashboard = () => {
           Dashboard Overview
         </Typography>
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card
               elevation={2}
               sx={{
@@ -364,7 +464,7 @@ const StudentDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card
               elevation={2}
               sx={{
@@ -384,7 +484,7 @@ const StudentDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card
               elevation={2}
               sx={{
@@ -404,7 +504,7 @@ const StudentDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card
               elevation={2}
               sx={{
@@ -429,183 +529,46 @@ const StudentDashboard = () => {
         </Grid>
       </Box>
 
-      {/* Rewards Overview Section */}
-      <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="h5"
-          sx={{ mb: 3, color: "primary.main", fontWeight: "medium" }}
-        >
-          🪙 Rewards & Progress
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
-              elevation={2}
-              sx={{
-                bgcolor: "warning.light",
-                border: "1px solid",
-                borderColor: "warning.main",
-              }}
-            >
-              <CardContent sx={{ textAlign: "center" }}>
-                <Stars sx={{ fontSize: 40, color: "warning.dark", mb: 1 }} />
-                <Typography variant="h4" color="warning.dark" fontWeight="bold">
-                  {userRewards.totalCoins}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Total Coins
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
-              elevation={2}
-              sx={{
-                bgcolor: "success.light",
-                border: "1px solid",
-                borderColor: "success.main",
-              }}
-            >
-              <CardContent sx={{ textAlign: "center" }}>
-                <LocalFireDepartment
-                  sx={{ fontSize: 40, color: "error.main", mb: 1 }}
-                />
-                <Typography variant="h4" color="error.main" fontWeight="bold">
-                  {userRewards.streak}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Day Streak
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
-              elevation={2}
-              sx={{
-                bgcolor: "info.light",
-                border: "1px solid",
-                borderColor: "info.main",
-              }}
-            >
-              <CardContent sx={{ textAlign: "center" }}>
-                <TrendingUp sx={{ fontSize: 40, color: "info.dark", mb: 1 }} />
-                <Typography variant="h4" color="info.dark" fontWeight="bold">
-                  {userRewards.level}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Level
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
-              elevation={2}
-              sx={{
-                bgcolor: "secondary.light",
-                border: "1px solid",
-                borderColor: "secondary.main",
-              }}
-            >
-              <CardContent sx={{ textAlign: "center" }}>
-                <EmojiEvents
-                  sx={{ fontSize: 40, color: "primary.main", mb: 1 }}
-                />
-                <Typography variant="h4" color="primary.main" fontWeight="bold">
-                  {mockAchievements.filter((a) => a.earned).length}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Achievements
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Level Progress Bar */}
-        <Box
-          sx={{
-            mt: 3,
-            p: 3,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            border: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
-          >
-            <Typography variant="h6" color="text.primary">
-              Level {userRewards.level} Progress
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {userRewards.totalCoins} / {userRewards.nextLevelCoins} coins
-            </Typography>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={(userRewards.totalCoins / userRewards.nextLevelCoins) * 100}
-            sx={{ height: 8, borderRadius: 4, bgcolor: "grey.200" }}
-          />
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mt: 1, textAlign: "center" }}
-          >
-            {userRewards.nextLevelCoins - userRewards.totalCoins} coins to level{" "}
-            {userRewards.level + 1}
-          </Typography>
-        </Box>
-      </Box>
-
       {/* Quick Actions */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ mb: 2, color: "text.primary" }}>
           Quick Actions
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Button
               fullWidth
               variant="contained"
               startIcon={<Mic />}
-              onClick={() => setActiveTab(1)}
+              onClick={() => setActiveTab(2)}
               sx={{ py: 1.5 }}
             >
               My Recordings
             </Button>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Button
               fullWidth
               variant="outlined"
               startIcon={<People />}
-              onClick={() => setActiveTab(2)}
+              onClick={() => setActiveTab(3)}
               sx={{ py: 1.5 }}
             >
               Manage Participants
             </Button>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Button
               fullWidth
               variant="outlined"
               startIcon={<Assignment />}
-              onClick={() => setActiveTab(3)}
+              onClick={() => setActiveTab(4)}
               sx={{ py: 1.5 }}
             >
               View All Tasks
             </Button>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Button
               fullWidth
               variant="outlined"
@@ -626,7 +589,7 @@ const StudentDashboard = () => {
         </Typography>
         <Grid container spacing={2}>
           {displayTasks.slice(0, 2).map((task) => (
-            <Grid item xs={12} md={6} key={task.id}>
+            <Grid size={{ xs: 12, md: 6 }} key={task.id}>
               <Card elevation={2}>
                 <CardContent>
                   <Box
@@ -694,12 +657,12 @@ const StudentDashboard = () => {
         variant="h5"
         sx={{ mb: 3, color: "primary.main", fontWeight: "medium" }}
       >
-        🏆 Rewards & Achievements
+        ?? Rewards & Achievements
       </Typography>
 
       {/* Rewards Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card
             elevation={2}
             sx={{
@@ -756,7 +719,7 @@ const StudentDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card
             elevation={2}
             sx={{
@@ -774,7 +737,7 @@ const StudentDashboard = () => {
                     Level {userRewards.level}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {userRewards.streak} Day Streak 🔥
+                    {userRewards.streak} Day Streak ??
                   </Typography>
                 </Box>
               </Box>
@@ -851,7 +814,7 @@ const StudentDashboard = () => {
         </Typography>
         <Grid container spacing={3}>
           {mockAchievements.map((achievement) => (
-            <Grid item xs={12} sm={6} md={4} key={achievement.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={achievement.id}>
               <Card
                 elevation={2}
                 sx={{
@@ -928,7 +891,7 @@ const StudentDashboard = () => {
           Earn More Coins
         </Typography>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card
               elevation={2}
               sx={{
@@ -972,7 +935,7 @@ const StudentDashboard = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card
               elevation={2}
               sx={{
@@ -1039,7 +1002,7 @@ const StudentDashboard = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary={recording.filename}
-                    secondary={`${recording.taskName} • ${recording.duration} • ${recording.uploadDate}`}
+                    secondary={`${recording.taskName} � ${recording.duration} � ${recording.uploadDate}`}
                   />
                   <Chip
                     label={
@@ -1077,132 +1040,312 @@ const StudentDashboard = () => {
       >
         <Typography
           variant="h5"
-          sx={{ color: "primary.main", fontWeight: "medium" }}
+          component="h2"
+          color="primary.main"
+          fontWeight="bold"
         >
-          My Participants
+          Participant Management
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => setInviteDialog(true)}
-        >
-          Invite New Participant
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshOutlined />}
+            onClick={fetchParticipantInvites}
+            disabled={invitesLoading}
+          >
+            Refresh
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setInviteDialog(true)}
+            sx={{
+              backgroundColor: "primary.main",
+              "&:hover": { backgroundColor: "primary.dark" },
+              borderRadius: 2,
+            }}
+          >
+            Invite Participant
+          </Button>
+        </Box>
       </Box>
 
-      {/* Referral Link Card */}
-      <Card elevation={2} sx={{ mb: 3, bgcolor: "secondary.light" }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
-            🔗 My Referral Link
-          </Typography>
-          <Box display="flex" gap={1}>
-            <TextField
-              fullWidth
-              size="small"
-              value={referralLink}
-              InputProps={{ readOnly: true }}
-            />
-            <IconButton onClick={handleCopyReferralLink} color="primary">
-              <ContentCopy />
-            </IconButton>
-          </Box>
-        </CardContent>
-      </Card>
-
-      {/* Participants List */}
       <Grid container spacing={3}>
-        {mockParticipants.map((participant) => (
-          <Grid item xs={12} md={6} key={participant.id}>
-            <Card elevation={2}>
-              <CardContent>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Invitation History
+              </Typography>
+              {invitesLoading ? (
                 <Box
                   display="flex"
-                  justifyContent="space-between"
-                  alignItems="start"
-                  mb={2}
+                  justifyContent="center"
+                  alignItems="center"
+                  p={4}
                 >
-                  <Box>
-                    <Typography variant="h6" color="primary.main">
-                      {participant.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Joined: {participant.joinedDate}
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 1,
-                        alignItems: "center",
-                        mt: 1,
-                      }}
-                    >
-                      <Chip
-                        label={`${participant.coinsEarned} coins`}
-                        size="small"
-                        color="warning"
-                        icon={<Stars />}
-                      />
-                      <Chip
-                        label={`Level ${participant.level}`}
-                        size="small"
-                        color="info"
-                        icon={<TrendingUp />}
-                      />
-                    </Box>
-                  </Box>
-                  <Chip
-                    label={participant.status}
-                    color={
-                      participant.status === "active" ? "success" : "default"
-                    }
-                    size="small"
-                  />
+                  <CircularProgress size={24} sx={{ mr: 2 }} />
+                  <Typography>Loading invitations...</Typography>
                 </Box>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  Tasks Assigned: {participant.tasksAssigned}
-                </Typography>
+              ) : participantInvites.length > 0 ? (
+                <TableContainer component={Paper} variant="outlined">
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Participant</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Created</TableCell>
+                        <TableCell>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {participantInvites.map((invite) => {
+                        const statusDisplay = getStatusDisplay(invite.status);
+                        const inviteLink = invite.inviteLink;
+                        const isExpired =
+                          new Date(invite.expiresAt) < new Date();
+
+                        return (
+                          <TableRow key={invite.id} hover>
+                            <TableCell>
+                              <Box>
+                                <Typography variant="body2" fontWeight="medium">
+                                  {invite.participantName}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  {invite.institute}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {invite.participantEmail}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Phone: {invite.participantPhone}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                icon={statusDisplay.icon}
+                                label={
+                                  isExpired && invite.status === "pending"
+                                    ? "Expired"
+                                    : statusDisplay.text
+                                }
+                                color={
+                                  isExpired && invite.status === "pending"
+                                    ? "error"
+                                    : statusDisplay.color
+                                }
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {new Date(
+                                  invite.createdAt
+                                ).toLocaleDateString()}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Expires:{" "}
+                                {new Date(
+                                  invite.expiresAt
+                                ).toLocaleDateString()}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Box display="flex" gap={1}>
+                                <Tooltip title="Copy Invite Link">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() =>
+                                      handleCopyInviteLink(
+                                        inviteLink,
+                                        invite.participantName
+                                      )
+                                    }
+                                    disabled={
+                                      !inviteLink ||
+                                      (isExpired && invite.status === "pending")
+                                    }
+                                  >
+                                    <Link fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Share Link">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      if (navigator.share) {
+                                        navigator.share({
+                                          title: `Registration Invite - ${invite.participantName}`,
+                                          text: `You've been invited to participate in OpenBhasha audio collection`,
+                                          url: inviteLink,
+                                        });
+                                      } else {
+                                        handleCopyInviteLink(
+                                          inviteLink,
+                                          invite.participantName
+                                        );
+                                      }
+                                    }}
+                                    disabled={
+                                      !inviteLink ||
+                                      (isExpired && invite.status === "pending")
+                                    }
+                                  >
+                                    <Share fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Box textAlign="center" p={4}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    No invitations sent yet.
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Click "Invite Participant" to create your first invitation.
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Quick Stats
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={2}>
                 <Box
                   display="flex"
                   justifyContent="space-between"
                   alignItems="center"
-                  mb={2}
                 >
-                  <Typography variant="body2">
-                    Progress: {participant.recordingsCompleted} /{" "}
-                    {participant.totalRecordings}
-                  </Typography>
-                  <Typography variant="body2" color="primary.main">
-                    {Math.round(
-                      (participant.recordingsCompleted /
-                        participant.totalRecordings) *
-                        100
-                    )}
-                    %
-                  </Typography>
+                  <Typography variant="body2">Total Invites:</Typography>
+                  <Chip
+                    label={participantInvites.length}
+                    size="small"
+                    variant="outlined"
+                  />
                 </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={
-                    (participant.recordingsCompleted /
-                      participant.totalRecordings) *
-                    100
-                  }
-                  sx={{ mb: 2, height: 6, borderRadius: 3 }}
-                />
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<Visibility />}
-                  size="small"
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
                 >
-                  View Details
+                  <Typography variant="body2">Registered:</Typography>
+                  <Chip
+                    label={
+                      participantInvites.filter(
+                        (invite) => invite.status === "accepted"
+                      ).length
+                    }
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                  />
+                </Box>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Typography variant="body2">Pending:</Typography>
+                  <Chip
+                    label={
+                      participantInvites.filter(
+                        (invite) =>
+                          invite.status === "pending" &&
+                          new Date(invite.expiresAt) > new Date()
+                      ).length
+                    }
+                    size="small"
+                    color="warning"
+                    variant="outlined"
+                  />
+                </Box>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Typography variant="body2">Expired:</Typography>
+                  <Chip
+                    label={
+                      participantInvites.filter(
+                        (invite) =>
+                          invite.status === "pending" &&
+                          new Date(invite.expiresAt) < new Date()
+                      ).length
+                    }
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                  />
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card sx={{ mt: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Quick Actions
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={1}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  startIcon={<Add />}
+                  onClick={() => setInviteDialog(true)}
+                >
+                  New Invite
                 </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  startIcon={<RefreshOutlined />}
+                  onClick={fetchParticipantInvites}
+                  disabled={invitesLoading}
+                >
+                  Refresh Data
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
+
+      <ParticipantInviteDialog
+        open={inviteDialog}
+        onClose={() => setInviteDialog(false)}
+        onInviteCreated={handleInviteCreated}
+      />
     </Box>
   );
 
@@ -1216,7 +1359,7 @@ const StudentDashboard = () => {
       </Typography>
       <Grid container spacing={3}>
         {displayTasks.map((task) => (
-          <Grid item xs={12} md={6} key={task.id}>
+          <Grid size={{ xs: 12, md: 6 }} key={task.id}>
             <Card elevation={2}>
               <CardContent>
                 <Box
@@ -1238,7 +1381,7 @@ const StudentDashboard = () => {
                   <Language sx={{ fontSize: 16, color: "text.secondary" }} />
                   <Chip label={task.language} size="small" variant="outlined" />
                   <Typography variant="body2" color="text.secondary">
-                    • {task.assignedParticipants} participants
+                    � {task.assignedParticipants} participants
                   </Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" mb={2}>
@@ -1338,43 +1481,12 @@ const StudentDashboard = () => {
       {/* Main Content */}
       <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>{renderTabContent()}</Box>
 
-      {/* Invite Dialog */}
-      <Dialog
+      {/* Participant Invite Dialog */}
+      <ParticipantInviteDialog
         open={inviteDialog}
         onClose={() => setInviteDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Invite New Participant</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Share this link with people you want to invite as participants:
-            </Typography>
-            <Box display="flex" gap={1} mb={2}>
-              <TextField
-                fullWidth
-                size="small"
-                value={referralLink}
-                InputProps={{ readOnly: true }}
-              />
-              <IconButton onClick={handleCopyReferralLink} color="primary">
-                <ContentCopy />
-              </IconButton>
-            </Box>
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            When someone joins using your referral link, they'll become your
-            participant and you can assign tasks to them.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setInviteDialog(false)}>Close</Button>
-          <Button onClick={handleCopyReferralLink} variant="contained">
-            Copy Link
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onInviteCreated={handleInviteCreated}
+      />
 
       {/* Snackbar for notifications */}
       <Snackbar

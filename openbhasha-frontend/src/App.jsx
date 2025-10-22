@@ -20,6 +20,7 @@ import NavigationLayout from "./components/NavigationLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ParticipantRegister from "./pages/auth/ParticipantRegister";
 
 // Dashboard Pages
 import AdminDashboard from "./pages/AdminDashboard";
@@ -54,15 +55,10 @@ function App() {
 
   // Verify token on app startup
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token && !isAuthenticated && !initialLoadComplete) {
-      dispatch(verifyToken()).finally(() => {
-        setInitialLoadComplete(true);
-      });
-    } else {
+    dispatch(verifyToken()).finally(() => {
       setInitialLoadComplete(true);
-    }
-  }, [dispatch, isAuthenticated, initialLoadComplete]);
+    });
+  }, [dispatch]);
 
   // Show loading screen during initial authentication check
   if (!initialLoadComplete) {
@@ -120,6 +116,10 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route
+            path="/register/participant/:token"
+            element={<ParticipantRegister />}
+          />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Temporarily unprotected routes for development (no backend yet) */}
@@ -127,8 +127,9 @@ function App() {
             path="/admin/dashboard"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-              // </ProtectedRoute>
+                <AdminDashboard />
+                //{" "}
+              </ProtectedRoute>
             }
           />
 
@@ -136,16 +137,18 @@ function App() {
             path="/student/dashboard"
             element={
               <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboard />
-              // </ProtectedRoute>
+                <StudentDashboard />
+                //{" "}
+              </ProtectedRoute>
             }
           />
           <Route
             path="/participant/dashboard"
             element={
               <ProtectedRoute allowedRoles={["participant"]}>
-              <ParticipantDashboard />
-              // </ProtectedRoute>
+                <ParticipantDashboard />
+                //{" "}
+              </ProtectedRoute>
             }
           />
 
@@ -153,8 +156,9 @@ function App() {
             path="/reviewer/dashboard"
             element={
               <ProtectedRoute allowedRoles={["reviewer"]}>
-              <ReviewerDashboard />
-              // </ProtectedRoute>
+                <ReviewerDashboard />
+                //{" "}
+              </ProtectedRoute>
             }
           />
 
@@ -162,8 +166,9 @@ function App() {
             path="/participant/tasks"
             element={
               <ProtectedRoute allowedRoles={["participant"]}>
-              <ParticipantTasks />
-              // </ProtectedRoute>
+                <ParticipantTasks />
+                //{" "}
+              </ProtectedRoute>
             }
           />
 
@@ -172,8 +177,9 @@ function App() {
             path="/student/tasks/:taskId/record"
             element={
               <ProtectedRoute allowedRoles={["student"]}>
-              <TaskRecording />
-              // </ProtectedRoute>
+                <TaskRecording />
+                //{" "}
+              </ProtectedRoute>
             }
           />
 
@@ -181,8 +187,9 @@ function App() {
             path="/participant/tasks/:taskId/record"
             element={
               <ProtectedRoute allowedRoles={["participant"]}>
-              <TaskRecording />
-              // </ProtectedRoute>
+                <TaskRecording />
+                //{" "}
+              </ProtectedRoute>
             }
           />
 
@@ -190,8 +197,9 @@ function App() {
             path="/admin/tasks/:taskId/record"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
-              <TaskRecording />
-              // </ProtectedRoute>
+                <TaskRecording />
+                //{" "}
+              </ProtectedRoute>
             }
           />
 

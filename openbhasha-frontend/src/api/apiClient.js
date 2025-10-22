@@ -155,6 +155,19 @@ export const studentAPI = {
     })
 }
 
+// Participant Invite API endpoints
+export const participantInviteAPI = {
+  createInvite: participantData =>
+    apiClient.post('/participant-invites/create', participantData),
+
+  getMyInvites: () => apiClient.get('/participant-invites/my-invites'),
+
+  getInviteByToken: token => apiClient.get(`/participant-invites/${token}`),
+
+  acceptInvite: (token, password) =>
+    apiClient.post(`/participant-invites/${token}/accept`, { password })
+}
+
 // Reviewer API endpoints (for future use)
 export const reviewerAPI = {
   getReviewBatches: params => apiClient.get('/reviewer/batches', { params }),
