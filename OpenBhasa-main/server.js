@@ -4,6 +4,11 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const recordingRoutes = require('./routes/recordingRoutes');
+const taskRequestRoutes = require('./routes/taskRequestRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -49,6 +54,11 @@ app.use(
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/recordings', recordingRoutes);
+app.use('/api/task-requests', taskRequestRoutes);
+app.use('/api/users', userRoutes);
 
 // Home route
 app.get('/', (req, res) => {
