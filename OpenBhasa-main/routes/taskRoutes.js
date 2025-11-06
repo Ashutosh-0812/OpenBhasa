@@ -1,23 +1,40 @@
-const express = require('express')
+const express = require('express');
 const {
-  getTasks,
-  getTaskById,
-  updateTaskProgress
-} = require('../controllers/taskController')
-const authenticate = require('../middleware/auth')
+  createTask,
+  getAllTasks,
+  getTask,
+  updateTask,
+  deleteTask,
+  assignTask,
+  getMyTasks
+} = require('../controllers/taskController');
+const authenticate = require('../middleware/auth');
+const authorize = require('../middleware/role');
 
-const router = express.Router()
+const router = express.Router();
 
-// All task routes require authentication
-router.use(authenticate)
+// All routes require authentication
+router.use(authenticate);
 
-// Get all tasks for the authenticated user
-router.get('/', getTasks)
+// Get my assigned tasks (student, participant)
+router.get('/my-tasks', authorize('student', 'participant'), getMyTasks);
 
-// Get specific task by ID
-router.get('/:taskId', getTaskById)
+// Create task (admin only)
+router.post('/', authorize('admin'), createTask);
 
-// Update task progress (for when recordings are completed)
-router.put('/:taskId/progress', updateTaskProgress)
+// Get all tasks
+router.get('/', getAllTasks);
 
-module.exports = router
+// Get single task
+router.get('/:id', getTask);
+
+// Update task (admin only)
+router.put('/:id', authorize('admin'), updateTask);
+
+// Delete task (admin only)
+router.delete('/:id', authorize('admin'), deleteTask);
+
+// Assign task (admin, student for their participants)
+router.post('/:id/assign', authorize('admin', 'student'), assignTask);
+
+module.exports = router;

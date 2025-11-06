@@ -1,142 +1,385 @@
-const mongoose = require('mongoose')
+const Task = require('../models/Task');
+const Project = require('../models/Project');
+const User = require('../models/User');
 
-// Mock tasks data - replace with actual database operations later
-const mockTasks = [
-  {
-    id: '1',
-    title: 'Bengali Story Narration',
-    language: 'Bengali',
-    completed: 10,
-    totalPrompts: 20,
-    status: 'in_progress',
-    description: 'Narrate traditional Bengali stories with expression',
-    assignedParticipants: 3,
-    coinsPerRecording: 25,
-    bonusCoins: 50,
-    totalEarned: 250,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-16')
-  },
-  {
-    id: '2',
-    title: 'Hindi Conversation Practice',
-    language: 'Hindi',
-    completed: 0,
-    totalPrompts: 25,
-    status: 'pending',
-    description: 'Practice daily conversation scenarios in Hindi',
-    assignedParticipants: 5,
-    coinsPerRecording: 20,
-    bonusCoins: 100,
-    totalEarned: 0,
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-10')
-  },
-  {
-    id: '3',
-    title: 'Marathi Poetry Reading',
-    language: 'Marathi',
-    completed: 15,
-    totalPrompts: 15,
-    status: 'completed',
-    description: 'Read classic Marathi poems with proper pronunciation',
-    assignedParticipants: 2,
-    coinsPerRecording: 30,
-    bonusCoins: 200,
-    totalEarned: 650,
-    createdAt: new Date('2024-01-05'),
-    updatedAt: new Date('2024-01-14')
-  }
-]
-
-// Get all tasks for a user
-const getTasks = async (req, res) => {
+// @desc    Create new task
+// @route   POST /api/tasks
+// @access  Admin only
+const createTask = async (req, res) => {
   try {
-    const userId = req.user._id
+    const {
+      project,
+      title,
+      description,
+      script,
+      language,
+      dialect,
+      difficulty,
+      estimatedDuration,
+      targetRecordings,
+      tags,
+      priority
+    } = req.body;
 
-    // For now, return mock data
-    // In the future, filter tasks by user role and assignments
-    const userTasks = mockTasks.filter(task => {
-      // Add logic to filter tasks based on user role and assignments
-      return true // Return all for now
-    })
+    // Verify project exists
+    const projectDoc = await Project.findById(project);
+    if (!projectDoc) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const task = await Task.create({
+      project,
+      title,
+      description,
+      script,
+      language,
+      dialect,
+      type: 'standard',
+      difficulty,
+      estimatedDuration,
+      targetRecordings,
+      tags,
+      priority,
+      status: 'active'
+    });
+
+    // Update project task count
+    await Project.findByIdAndUpdate(project, {
+      $inc: { 'metadata.totalTasks': 1 }
+    });
+
+    const populatedTask = await Task.findById(task._id).populate('project', 'title language');
+
+    res.status(201).json({
+      message: 'Task created successfully',
+      task: populatedTask
+    });
+  } catch (error) {
+    console.error('Create task error:', error);
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get all tasks
+// @route   GET /api/tasks
+// @access  All authenticated users
+const getAllTasks = async (req, res) => {
+  try {
+    const {
+      project,
+      status,
+      type,
+      language,
+      approvalStatus,
+      page = 1,
+      limit = 20
+    } = req.query;
+
+    const query = {};
+
+    if (project) query.project = project;
+    if (status) query.status = status;
+    if (type) query.type = type;
+    if (language) query.language = language;
+    if (approvalStatus) query.approvalStatus = approvalStatus;
+
+    // Students and participants see only active approved tasks
+    if (['student', 'participant'].includes(req.user.role)) {
+      query.status = 'active';
+      query.approvalStatus = 'approved';
+    }
+
+    const tasks = await Task.find(query)
+      .populate('project', 'title language status')
+      .populate('requestedBy', 'name email role')
+      .populate('approvedBy', 'name email role')
+      .sort({ priority: -1, createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const count = await Task.countDocuments(query);
 
     res.json({
-      message: 'Tasks retrieved successfully',
-      tasks: userTasks,
-      count: userTasks.length
-    })
+      tasks,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      total: count
+    });
   } catch (error) {
-    console.error('Get tasks error:', error)
+    console.error('Get tasks error:', error);
     res.status(500).json({
-      message: 'Server error while fetching tasks',
+      message: 'Server error',
       error: error.message
-    })
+    });
   }
-}
+};
 
-// Get task by ID
-const getTaskById = async (req, res) => {
+// @desc    Get single task
+// @route   GET /api/tasks/:id
+// @access  All authenticated users
+const getTask = async (req, res) => {
   try {
-    const { taskId } = req.params
-
-    const task = mockTasks.find(t => t.id === taskId)
+    const task = await Task.findById(req.params.id)
+      .populate('project', 'title language status guidelines')
+      .populate('requestedBy', 'name email role')
+      .populate('approvedBy', 'name email role');
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' })
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check if user has already completed this task
+    const Recording = require('../models/Recording');
+    let userRecording = null;
+    
+    if (['student', 'participant'].includes(req.user.role)) {
+      userRecording = await Recording.findOne({
+        task: task._id,
+        contributor: req.user._id
+      });
     }
 
     res.json({
-      message: 'Task retrieved successfully',
-      task
-    })
+      task,
+      userRecording: userRecording ? {
+        id: userRecording._id,
+        reviewStatus: userRecording.reviewStatus,
+        submittedAt: userRecording.createdAt
+      } : null
+    });
   } catch (error) {
-    console.error('Get task by ID error:', error)
+    console.error('Get task error:', error);
     res.status(500).json({
-      message: 'Server error while fetching task',
+      message: 'Server error',
       error: error.message
-    })
+    });
   }
-}
+};
 
-// Update task progress (for recording completion)
-const updateTaskProgress = async (req, res) => {
+// @desc    Update task
+// @route   PUT /api/tasks/:id
+// @access  Admin only
+const updateTask = async (req, res) => {
   try {
-    const { taskId } = req.params
-    const { completed } = req.body
+    const task = await Task.findById(req.params.id);
 
-    const taskIndex = mockTasks.findIndex(t => t.id === taskId)
-
-    if (taskIndex === -1) {
-      return res.status(404).json({ message: 'Task not found' })
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
     }
 
-    // Update task progress
-    mockTasks[taskIndex].completed = completed
-    mockTasks[taskIndex].updatedAt = new Date()
+    const {
+      title,
+      description,
+      script,
+      language,
+      dialect,
+      difficulty,
+      estimatedDuration,
+      status,
+      targetRecordings,
+      tags,
+      priority
+    } = req.body;
 
-    // Update status based on completion
-    if (completed >= mockTasks[taskIndex].totalPrompts) {
-      mockTasks[taskIndex].status = 'completed'
-    } else if (completed > 0) {
-      mockTasks[taskIndex].status = 'in_progress'
+    if (title) task.title = title;
+    if (description) task.description = description;
+    if (script) task.script = script;
+    if (language) task.language = language;
+    if (dialect) task.dialect = dialect;
+    if (difficulty) task.difficulty = difficulty;
+    if (estimatedDuration) task.estimatedDuration = estimatedDuration;
+    if (status) task.status = status;
+    if (targetRecordings) task.targetRecordings = targetRecordings;
+    if (tags) task.tags = tags;
+    if (priority) task.priority = priority;
+
+    await task.save();
+
+    const updatedTask = await Task.findById(task._id)
+      .populate('project', 'title language');
+
+    res.json({
+      message: 'Task updated successfully',
+      task: updatedTask
+    });
+  } catch (error) {
+    console.error('Update task error:', error);
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Delete task
+// @route   DELETE /api/tasks/:id
+// @access  Admin only
+const deleteTask = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check if task has recordings
+    const Recording = require('../models/Recording');
+    const recordingsCount = await Recording.countDocuments({ task: task._id });
+    
+    if (recordingsCount > 0) {
+      return res.status(400).json({
+        message: 'Cannot delete task with existing recordings. Change status to completed instead.'
+      });
+    }
+
+    await task.deleteOne();
+
+    // Update project task count
+    await Project.findByIdAndUpdate(task.project, {
+      $inc: { 'metadata.totalTasks': -1 }
+    });
+
+    res.json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    console.error('Delete task error:', error);
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Assign task to users
+// @route   POST /api/tasks/:id/assign
+// @access  Admin, Student (for their participants)
+const assignTask = async (req, res) => {
+  try {
+    const { userIds } = req.body; // Array of user IDs
+
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Verify users exist and are students or participants
+    const users = await User.find({
+      _id: { $in: userIds },
+      role: { $in: ['student', 'participant'] }
+    });
+
+    if (users.length !== userIds.length) {
+      return res.status(400).json({
+        message: 'One or more users not found or invalid role'
+      });
+    }
+
+    // If requester is student, verify they manage these participants
+    if (req.user.role === 'student') {
+      const managedUsers = users.every(user =>
+        user.managedBy && user.managedBy.toString() === req.user._id.toString()
+      );
+      
+      if (!managedUsers) {
+        return res.status(403).json({
+          message: 'You can only assign tasks to your own participants'
+        });
+      }
+    }
+
+    // Add assignments (avoid duplicates)
+    const existingAssignments = task.assignedTo.map(a => a.user.toString());
+    const newAssignments = userIds
+      .filter(id => !existingAssignments.includes(id))
+      .map(id => ({ user: id }));
+
+    task.assignedTo.push(...newAssignments);
+    await task.save();
+
+    const updatedTask = await Task.findById(task._id)
+      .populate('assignedTo.user', 'name email role');
+
+    res.json({
+      message: 'Task assigned successfully',
+      task: updatedTask
+    });
+  } catch (error) {
+    console.error('Assign task error:', error);
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get my assigned tasks
+// @route   GET /api/tasks/my-tasks
+// @access  Student, Participant
+const getMyTasks = async (req, res) => {
+  try {
+    const { status, completed } = req.query;
+
+    const query = {
+      'assignedTo.user': req.user._id,
+      approvalStatus: 'approved'
+    };
+
+    if (status) {
+      query.status = status;
+    } else {
+      query.status = 'active';
+    }
+
+    const tasks = await Task.find(query)
+      .populate('project', 'title language guidelines')
+      .sort({ priority: -1, createdAt: -1 });
+
+    // Check completion status
+    const Recording = require('../models/Recording');
+    const tasksWithCompletion = await Promise.all(
+      tasks.map(async (task) => {
+        const recording = await Recording.findOne({
+          task: task._id,
+          contributor: req.user._id
+        });
+
+        return {
+          ...task.toObject(),
+          isCompleted: !!recording,
+          recordingStatus: recording ? recording.reviewStatus : null
+        };
+      })
+    );
+
+    // Filter by completion if requested
+    let filteredTasks = tasksWithCompletion;
+    if (completed === 'true') {
+      filteredTasks = tasksWithCompletion.filter(t => t.isCompleted);
+    } else if (completed === 'false') {
+      filteredTasks = tasksWithCompletion.filter(t => !t.isCompleted);
     }
 
     res.json({
-      message: 'Task progress updated successfully',
-      task: mockTasks[taskIndex]
-    })
+      tasks: filteredTasks,
+      total: filteredTasks.length
+    });
   } catch (error) {
-    console.error('Update task progress error:', error)
+    console.error('Get my tasks error:', error);
     res.status(500).json({
-      message: 'Server error while updating task',
+      message: 'Server error',
       error: error.message
-    })
+    });
   }
-}
+};
 
 module.exports = {
-  getTasks,
-  getTaskById,
-  updateTaskProgress
-}
+  createTask,
+  getAllTasks,
+  getTask,
+  updateTask,
+  deleteTask,
+  assignTask,
+  getMyTasks
+};

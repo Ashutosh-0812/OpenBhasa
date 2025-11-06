@@ -67,6 +67,36 @@ const userSchema = new mongoose.Schema(
     isVerified: {
       type: Boolean,
       default: false
+    },
+    // Student-specific fields
+    managedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User' // References the student who added this participant
+    },
+    participants: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User' // Students can have multiple participants
+    }],
+    // Reviewer-specific fields
+    assignedProjects: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project'
+    }],
+    // Statistics
+    stats: {
+      totalRecordings: { type: Number, default: 0 },
+      approvedRecordings: { type: Number, default: 0 },
+      rejectedRecordings: { type: Number, default: 0 },
+      totalReviews: { type: Number, default: 0 }, // for reviewers
+      tasksCompleted: { type: Number, default: 0 }
+    },
+    // Status
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+    lastLogin: {
+      type: Date
     }
   },
   {
