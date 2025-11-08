@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Participant Login Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .success {
+            border-left-color: #28a745;
+        }
+
+        .error {
+            border-left-color: #dc3545;
+        }
+
+        .warning {
+            border-left-color: #ffc107;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #results {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 Participant Login Flow Test</h1>
+    <p>This page tests the new participant-only login system through invitation tokens.</p>
+
+    <div class="test-section">
+        <h3>Test Configuration</h3>
+        <p><strong>Backend URL:</strong> <span id="backendUrl">http://localhost:5000</span></p>
+        <p><strong>Frontend URL:</strong> <span id="frontendUrl">http://localhost:5173</span></p>
+        <p><strong>Test Token:</strong>
+            <input type="text" id="testToken" placeholder="Enter invitation token here" style="width: 300px;">
+        </p>
+        <p><strong>Test Password:</strong>
+            <input type="password" id="testPassword" placeholder="Enter participant password" style="width: 200px;">
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Actions</h3>
+        <button onclick="testGetInvitation()">1️⃣ Test Get Invitation</button>
+        <button onclick="testParticipantLogin()">2️⃣ Test Participant Login</button>
+        <button onclick="testRegularLoginBlocked()">3️⃣ Test Regular Login Blocked</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Results</h3>
+        <div id="results">Ready to run tests...</div>
+    </div>
+
+    <script>
+        const backendUrl = 'http://localhost:5000';
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            results.textContent += `[${timestamp}] ${icon} ${message}\n`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').textContent = 'Results cleared...\n';
+        }
+
+        async function testGetInvitation() {
+            const token = document.getElementById('testToken').value.trim();
+
+            if (!token) {
+                log('Please enter a test token first', 'error');
+                return;
+            }
+
+            log(`Testing invitation fetch for token: ${token}`);
+
+            try {
+                const response = await fetch(`${backendUrl}/api/participant-invites/${token}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log(`✅ Invitation found successfully!`, 'success');
+                    log(`Status: ${data.invite.status}`);
+                    log(`Participant: ${data.invite.participantData.name}`);
+                    log(`Email: ${data.invite.participantData.email}`);
+
+                    if (data.invite.status === 'accepted') {
+                        log(`This invitation was already accepted - ready for login!`, 'warning');
+                    } else {
+                        log(`This invitation is pending - needs registration first`, 'warning');
+                    }
+                } else {
+                    log(`❌ Failed to get invitation: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testParticipantLogin() {
+            const token = document.getElementById('testToken').value.trim();
+            const password = document.getElementById('testPassword').value.trim();
+
+            if (!token || !password) {
+                log('Please enter both token and password', 'error');
+                return;
+            }
+
+            log(`Testing participant login for token: ${token}`);
+
+            try {
+                const response = await fetch(`${backendUrl}/api/participant-invites/${token}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log(`✅ Participant login successful!`, 'success');
+                    log(`Participant: ${data.user.name}`);
+                    log(`Email: ${data.user.email}`);
+                    log(`Role: ${data.user.role}`);
+                    log(`Redirect: ${data.redirectTo}`);
+                    log(`Authentication cookies should be set now`, 'success');
+                } else {
+                    log(`❌ Participant login failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRegularLoginBlocked() {
+            log(`Testing that participants are blocked from regular login`);
+
+            // We'll simulate trying to login with participant credentials through regular login
+            const testEmail = 'participant@example.com'; // This should be a participant email
+            const testPassword = 'test123';
+
+            try {
+                const response = await fetch(`${backendUrl}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: testEmail,
+                        password: testPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok && data.message && data.message.includes('invitation link')) {
+                    log(`✅ Participants correctly blocked from regular login!`, 'success');
+                    log(`Blocked message: ${data.message}`);
+                } else if (response.ok) {
+                    log(`⚠️ Participant was allowed to login through regular endpoint`, 'warning');
+                } else {
+                    log(`❌ Unexpected response: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-populate some test values
+        document.addEventListener('DOMContentLoaded', function () {
+            log('Test page loaded. Here are the test credentials:');
+            log('📧 Email: sharmaujjwal2024@gmail.com');
+            log('🔑 Password: Test123A');
+            log('🎫 Token: a44bb606e2d04ca176f58d16e6d57d35a124159fb57dc92ad327f1fff752af31');
+
+            // Auto-fill the form
+            document.getElementById('testToken').value = 'a44bb606e2d04ca176f58d16e6d57d35a124159fb57dc92ad327f1fff752af31';
+            document.getElementById('testPassword').value = 'Test123A';
+        });
+    </script>
+</body>
+
+</html>

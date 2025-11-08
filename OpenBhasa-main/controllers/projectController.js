@@ -4,9 +4,17 @@ const User = require('../models/User');
 
 // @desc    Create new project
 // @route   POST /api/projects
-// @access  Admin only
+// @access  Admin and Student
 const createProject = async (req, res) => {
   try {
+    console.log('🚀 CREATE PROJECT REQUEST RECEIVED');
+    console.log('📋 Request Body:', JSON.stringify(req.body, null, 2));
+    console.log('👤 User Info:', { 
+      id: req.user._id, 
+      role: req.user.role, 
+      email: req.user.email 
+    });
+
     const {
       title,
       description,
@@ -15,8 +23,21 @@ const createProject = async (req, res) => {
       targetRecordings,
       guidelines,
       tags,
-      assignedReviewers
+      assignedReviewers,
+      assignedUsers
     } = req.body;
+
+    console.log('📝 Extracted Data:', {
+      title,
+      description,
+      language,
+      dialects,
+      targetRecordings,
+      hasGuidelines: !!guidelines,
+      tagsCount: tags?.length || 0,
+      reviewersCount: assignedReviewers?.length || 0,
+      usersCount: assignedUsers?.length || 0
+    });
 
     // Verify reviewers exist and have reviewer role
     if (assignedReviewers && assignedReviewers.length > 0) {
@@ -32,6 +53,21 @@ const createProject = async (req, res) => {
       }
     }
 
+    // Validate assigned users if provided
+    if (assignedUsers && assignedUsers.length > 0) {
+      const users = await User.find({
+        _id: { $in: assignedUsers },
+        role: { $in: ['student', 'participant'] }
+      });
+      if (users.length !== assignedUsers.length) {
+        return res.status(400).json({
+          message: 'One or more assigned users not found or invalid role'
+        });
+      }
+      console.log('✅ Assigned users validated:', users.map(u => ({ id: u._id, name: u.name, role: u.role })));
+    }
+
+    console.log('💾 Creating project in database...');
     const project = await Project.create({
       title,
       description,
@@ -41,7 +77,12 @@ const createProject = async (req, res) => {
       guidelines,
       tags,
       assignedReviewers,
+      assignedUsers,
       createdBy: req.user._id
+    });
+    console.log('✅ Project created successfully:', { 
+      id: project._id, 
+      title: project.title 
     });
 
     // Update reviewers' assignedProjects
@@ -52,16 +93,20 @@ const createProject = async (req, res) => {
       );
     }
 
+    console.log('🔄 Populating project data...');
     const populatedProject = await Project.findById(project._id)
       .populate('createdBy', 'name email')
       .populate('assignedReviewers', 'name email');
 
+    console.log('📤 Sending response with populated project');
     res.status(201).json({
       message: 'Project created successfully',
       project: populatedProject
     });
+    console.log('✅ CREATE PROJECT COMPLETED SUCCESSFULLY');
   } catch (error) {
-    console.error('Create project error:', error);
+    console.error('❌ CREATE PROJECT ERROR:', error);
+    console.error('Error Stack:', error.stack);
     res.status(500).json({
       message: 'Server error',
       error: error.message
@@ -74,7 +119,15 @@ const createProject = async (req, res) => {
 // @access  Admin, Reviewer, Student
 const getAllProjects = async (req, res) => {
   try {
+    console.log('🚀 GET ALL PROJECTS REQUEST RECEIVED');
+    console.log('👤 User Info:', { 
+      id: req.user._id, 
+      role: req.user.role, 
+      email: req.user.email 
+    });
+    
     const { status, language, page = 1, limit = 10 } = req.query;
+    console.log('📋 Query Parameters:', { status, language, page, limit });
 
     const query = {};
     
@@ -88,11 +141,17 @@ const getAllProjects = async (req, res) => {
       query.language = language;
     }
 
-    // Reviewers only see their assigned projects
+    // Role-based filtering
     if (req.user.role === 'reviewer') {
+      // Reviewers only see their assigned projects
       query.assignedReviewers = req.user._id;
+    } else if (req.user.role === 'participant') {
+      // Participants only see projects they're assigned to
+      query.assignedUsers = req.user._id;
     }
+    // Students and admins see all projects (no additional filter)
 
+    console.log('🔍 Querying projects with filter:', query);
     const projects = await Project.find(query)
       .populate('createdBy', 'name email')
       .populate('assignedReviewers', 'name email')
@@ -101,15 +160,25 @@ const getAllProjects = async (req, res) => {
       .skip((page - 1) * limit);
 
     const count = await Project.countDocuments(query);
+    
+    console.log('📊 Projects query results:', {
+      projectsCount: projects.length,
+      totalCount: count,
+      projectIds: projects.map(p => p._id)
+    });
 
-    res.json({
+    const response = {
       projects,
       totalPages: Math.ceil(count / limit),
       currentPage: page,
       total: count
-    });
+    };
+    
+    console.log('📤 Sending projects response');
+    res.json(response);
+    console.log('✅ GET ALL PROJECTS COMPLETED SUCCESSFULLY');
   } catch (error) {
-    console.error('Get projects error:', error);
+    console.error('❌ GET PROJECTS ERROR:', error);
     res.status(500).json({
       message: 'Server error',
       error: error.message
@@ -122,25 +191,46 @@ const getAllProjects = async (req, res) => {
 // @access  Admin, Reviewer, Student
 const getProject = async (req, res) => {
   try {
+    console.log('🔍 GET PROJECT REQUEST RECEIVED');
+    console.log('👤 User Info:', { 
+      id: req.user._id, 
+      role: req.user.role, 
+      email: req.user.email 
+    });
+    console.log('📋 Project ID:', req.params.id);
+
     const project = await Project.findById(req.params.id)
       .populate('createdBy', 'name email')
       .populate('assignedReviewers', 'name email');
 
     if (!project) {
+      console.log('❌ Project not found for ID:', req.params.id);
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    // Get project tasks count
-    const tasksCount = await Task.countDocuments({ project: project._id });
+    console.log('✅ Project found:', {
+      id: project._id,
+      title: project.title,
+      createdBy: project.createdBy
+    });
 
-    res.json({
+    // Get project tasks count
+    console.log('📊 Getting tasks count for project...');
+    const tasksCount = await Task.countDocuments({ project: project._id });
+    console.log('📊 Tasks count:', tasksCount);
+
+    const response = {
       project: {
         ...project.toObject(),
         tasksCount
       }
-    });
+    };
+
+    console.log('📤 Sending project response');
+    res.json(response);
+    console.log('✅ GET PROJECT COMPLETED SUCCESSFULLY');
   } catch (error) {
-    console.error('Get project error:', error);
+    console.error('❌ GET PROJECT ERROR:', error);
     res.status(500).json({
       message: 'Server error',
       error: error.message
@@ -239,34 +329,69 @@ const updateProject = async (req, res) => {
 
 // @desc    Delete project
 // @route   DELETE /api/projects/:id
-// @access  Admin only
+// @access  Admin and Student (own projects)
 const deleteProject = async (req, res) => {
   try {
+    console.log('🗑️ DELETE PROJECT REQUEST RECEIVED');
+    console.log('👤 User Info:', { 
+      id: req.user._id, 
+      role: req.user.role, 
+      email: req.user.email 
+    });
+    console.log('📋 Project ID to delete:', req.params.id);
+
     const project = await Project.findById(req.params.id);
 
     if (!project) {
+      console.log('❌ Project not found');
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    console.log('📊 Project found:', {
+      id: project._id,
+      title: project.title,
+      createdBy: project.createdBy
+    });
+
+    // Students can only delete their own projects
+    if (req.user.role === 'student' && project.createdBy.toString() !== req.user._id.toString()) {
+      console.log('❌ Student trying to delete project not created by them');
+      return res.status(403).json({ 
+        message: 'You can only delete projects you created' 
+      });
+    }
+
     // Check if project has tasks
+    console.log('🔍 Checking for existing tasks...');
     const tasksCount = await Task.countDocuments({ project: project._id });
+    console.log('📊 Tasks found:', tasksCount);
+    
     if (tasksCount > 0) {
+      console.log('❌ Cannot delete project with existing tasks');
       return res.status(400).json({
         message: 'Cannot delete project with existing tasks. Archive it instead.'
       });
     }
 
     // Remove from reviewers' assigned projects
-    await User.updateMany(
-      { _id: { $in: project.assignedReviewers } },
-      { $pull: { assignedProjects: project._id } }
-    );
+    console.log('🔄 Removing project from reviewers...');
+    if (project.assignedReviewers && project.assignedReviewers.length > 0) {
+      await User.updateMany(
+        { _id: { $in: project.assignedReviewers } },
+        { $pull: { assignedProjects: project._id } }
+      );
+      console.log('✅ Removed from reviewers');
+    }
 
+    console.log('🗑️ Deleting project from database...');
     await project.deleteOne();
+    console.log('✅ Project deleted successfully');
 
     res.json({ message: 'Project deleted successfully' });
+    console.log('✅ DELETE PROJECT COMPLETED SUCCESSFULLY');
   } catch (error) {
-    console.error('Delete project error:', error);
+    console.error('❌ DELETE PROJECT ERROR:', error);
+    console.error('Error Stack:', error.stack);
     res.status(500).json({
       message: 'Server error',
       error: error.message
@@ -332,11 +457,110 @@ const getProjectStats = async (req, res) => {
   }
 };
 
+// @desc    Assign users to project
+// @route   PUT /api/projects/:id/assign-users
+// @access  Admin and Student
+const assignUsersToProject = async (req, res) => {
+  try {
+    console.log('👥 ASSIGN USERS TO PROJECT REQUEST');
+    console.log('📋 Request Body:', JSON.stringify(req.body, null, 2));
+    console.log('👤 User Info:', { 
+      id: req.user._id, 
+      role: req.user.role, 
+      email: req.user.email 
+    });
+
+    const { assignedUsers } = req.body;
+    const projectId = req.params.id;
+
+    if (!assignedUsers || !Array.isArray(assignedUsers)) {
+      return res.status(400).json({
+        message: 'assignedUsers must be an array of user IDs'
+      });
+    }
+
+    console.log('📋 Assigning users:', assignedUsers, 'to project:', projectId);
+
+    // Find the project
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    console.log('✅ Project found:', project.title);
+
+    // Verify users exist and get their details
+    const users = await User.find({
+      _id: { $in: assignedUsers },
+      role: { $in: ['student', 'participant'] }
+    });
+
+    if (users.length !== assignedUsers.length) {
+      return res.status(400).json({
+        message: 'One or more users not found or invalid role'
+      });
+    }
+
+    console.log('✅ Users verified:', users.map(u => ({ id: u._id, name: u.name, role: u.role })));
+
+    // Update project with assigned users
+    project.assignedUsers = [...new Set([...(project.assignedUsers || []), ...assignedUsers])];
+    await project.save();
+
+    console.log('✅ Project updated with assigned users');
+
+    // Get project tasks for assignment
+    const Task = require('../models/Task');
+    const projectTasks = await Task.find({ 
+      project: projectId, 
+      status: 'active',
+      approvalStatus: 'approved'
+    });
+
+    console.log('📋 Found project tasks:', projectTasks.length);
+
+    // Assign users to each task in the project
+    if (projectTasks.length > 0) {
+      for (const task of projectTasks) {
+        const existingAssignments = task.assignedTo.map(a => a.user.toString());
+        const newAssignments = assignedUsers
+          .filter(userId => !existingAssignments.includes(userId))
+          .map(userId => ({ user: userId, assignedAt: new Date() }));
+        
+        if (newAssignments.length > 0) {
+          task.assignedTo.push(...newAssignments);
+          await task.save();
+          console.log('✅ Task assigned:', task.title, 'to', newAssignments.length, 'new users');
+        }
+      }
+    }
+
+    const populatedProject = await Project.findById(project._id)
+      .populate('createdBy', 'name email')
+      .populate('assignedReviewers', 'name email');
+
+    console.log('✅ User assignment completed successfully');
+
+    res.json({
+      message: 'Users assigned successfully',
+      project: populatedProject,
+      assignedTasksCount: projectTasks.length
+    });
+  } catch (error) {
+    console.error('❌ Assign users error:', error);
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createProject,
   getAllProjects,
   getProject,
   updateProject,
   deleteProject,
-  getProjectStats
+  getProjectStats,
+  assignUsersToProject
 };

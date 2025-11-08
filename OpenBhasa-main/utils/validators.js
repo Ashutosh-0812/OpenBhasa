@@ -422,6 +422,87 @@ class Validators {
       validatedData
     }
   }
+
+  // Participant invite validation (no password required)
+  static validateParticipantInvite (data) {
+    const errors = []
+    const validatedData = {}
+
+    // Validate name
+    const nameValidation = this.validateName(data.name)
+    if (!nameValidation.isValid) errors.push(nameValidation.message)
+    else validatedData.name = data.name.trim()
+
+    // Validate email
+    const emailValidation = this.validateEmail(data.email)
+    if (!emailValidation.isValid) errors.push(emailValidation.message)
+    else validatedData.email = emailValidation.email
+
+    // Validate phone
+    const phoneValidation = this.validatePhone(data.phone)
+    if (!phoneValidation.isValid) errors.push(phoneValidation.message)
+    else validatedData.phone = phoneValidation.phone
+
+    // Validate age
+    const ageValidation = this.validateAge(data.age)
+    if (!ageValidation.isValid) errors.push(ageValidation.message)
+    else validatedData.age = ageValidation.age
+
+    // Validate college/institute
+    const collegeValidation = this.validateCollege(data.college || data.institute)
+    if (!collegeValidation.isValid) errors.push(collegeValidation.message)
+    else validatedData.college = collegeValidation.college
+
+    // Validate gender
+    const genderValidation = this.validateGender(data.gender)
+    if (!genderValidation.isValid) errors.push(genderValidation.message)
+    else validatedData.gender = genderValidation.gender
+
+    // Validate native
+    const nativeValidation = this.validateNative(data.native)
+    if (!nativeValidation.isValid) errors.push(nativeValidation.message)
+    else validatedData.native = nativeValidation.native
+
+    // Validate language array
+    const languageValidation = this.validateStringArray(
+      'Language',
+      data.language,
+      1,
+      5
+    )
+    if (!languageValidation.isValid) errors.push(languageValidation.message)
+    else validatedData.language = languageValidation.array
+
+    // Validate dialects array (optional)
+    if (data.dialects && data.dialects.length > 0) {
+      const dialectsValidation = this.validateStringArray(
+        'Dialects',
+        data.dialects,
+        0,
+        10
+      )
+      if (!dialectsValidation.isValid) errors.push(dialectsValidation.message)
+      else validatedData.dialects = dialectsValidation.array
+    }
+
+    // Validate accent array (optional)
+    if (data.accent && data.accent.length > 0) {
+      const accentValidation = this.validateStringArray(
+        'Accent',
+        data.accent,
+        0,
+        10
+      )
+      if (!accentValidation.isValid) errors.push(accentValidation.message)
+      else validatedData.accent = accentValidation.array
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      validatedData
+    }
+  }
 }
 
 module.exports = Validators

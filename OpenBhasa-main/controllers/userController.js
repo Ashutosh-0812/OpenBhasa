@@ -385,6 +385,61 @@ const addReviewer = async (req, res) => {
   }
 };
 
+// @desc    Get all users (admin, student)
+// @route   GET /api/users
+// @access  Admin, Student
+const getAllUsers = async (req, res) => {
+  try {
+    console.log('🔍 GET ALL USERS REQUEST');
+    console.log('👤 User Info:', { 
+      id: req.user._id, 
+      role: req.user.role, 
+      email: req.user.email 
+    });
+    
+    const { role, page = 1, limit = 50 } = req.query;
+    
+    const query = {};
+    
+    // Filter by role if specified
+    if (role) {
+      query.role = role;
+    }
+    
+    // Students can only see their own participants for task assignment
+    if (req.user.role === 'student') {
+      query.role = 'participant';
+      query.managedBy = req.user._id;
+      console.log('👨‍🎓 Student accessing users - filtering to their participants only:', req.user.email);
+    }
+    
+    console.log('📋 Query filter:', query);
+    
+    const users = await User.find(query)
+      .select('-password -tokens') // Exclude sensitive fields
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+      
+    const count = await User.countDocuments(query);
+    
+    console.log('✅ Users found:', users.length);
+    
+    res.json({
+      users,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page
+    });
+  } catch (error) {
+    console.error('❌ Get all users error:', error);
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   addParticipant,
   getMyParticipants,
@@ -392,5 +447,6 @@ module.exports = {
   updateParticipant,
   removeParticipant,
   getAllReviewers,
-  addReviewer
+  addReviewer,
+  getAllUsers
 };

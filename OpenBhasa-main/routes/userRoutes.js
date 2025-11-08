@@ -6,7 +6,8 @@ const {
   updateParticipant,
   removeParticipant,
   getAllReviewers,
-  addReviewer
+  addReviewer,
+  getAllUsers
 } = require('../controllers/userController');
 const authenticate = require('../middleware/auth');
 const authorize = require('../middleware/role');
@@ -16,6 +17,9 @@ const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
+
+// Get all users (admin, student)
+router.get('/', authorize('admin', 'student'), getAllUsers);
 
 // Participant routes
 router.post('/participants', authorize('student'), validateParticipant, addParticipant);
