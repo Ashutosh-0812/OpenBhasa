@@ -1,12 +1,13 @@
 const express = require('express');
 const {
+  uploadAndSubmitRecording,
   submitRecording,
   getRecordings,
-  getRecording,
+  getRecordingById,
   reviewRecording,
   deleteRecording,
   getMyRecordings
-} = require('../controllers/recordingController');
+} = require('../controllers/recordingControllerWithVAD');
 const authenticate = require('../middleware/auth');
 const authorize = require('../middleware/role');
 
@@ -18,14 +19,17 @@ router.use(authenticate);
 // Get my recordings (student, participant)
 router.get('/my-recordings', authorize('student', 'participant'), getMyRecordings);
 
-// Submit recording (student, participant)
+// Upload audio file with VAD processing (student, participant)
+router.post('/upload', authorize('student', 'participant'), uploadAndSubmitRecording);
+
+// Submit recording with audioUrl (student, participant) - legacy endpoint
 router.post('/', authorize('student', 'participant'), submitRecording);
 
 // Get all recordings (role-based filtering)
 router.get('/', getRecordings);
 
 // Get single recording
-router.get('/:id', getRecording);
+router.get('/:id', getRecordingById);
 
 // Review recording (reviewer, admin)
 router.put('/:id/review', authorize('admin', 'reviewer'), reviewRecording);

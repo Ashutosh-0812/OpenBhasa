@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
@@ -18,6 +19,10 @@ connectDB();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Configure CORS to allow the frontend origin and credentials (cookies)
 const allowedOrigins = [
   process.env.CLIENT_URL,

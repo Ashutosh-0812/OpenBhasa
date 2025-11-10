@@ -54,6 +54,23 @@ const recordingSchema = new mongoose.Schema(
       os: String,
       microphone: String
     },
+    // VAD (Voice Activity Detection) Analysis
+    vadAnalysis: {
+      totalDuration: { type: Number }, // Total recording duration
+      actualSpeechDuration: { type: Number }, // Duration with actual speech
+      totalSilence: { type: Number }, // Total silence detected
+      speechPercentage: { type: Number }, // Percentage of speech
+      silencePeriods: [{
+        start: Number,
+        end: Number,
+        duration: Number
+      }],
+      trimStart: { type: Number }, // Silence trimmed from start
+      trimEnd: { type: Number }, // Silence trimmed from end
+      trimmed: { type: Boolean, default: false }, // Whether audio was trimmed
+      formattedSpeechDuration: String, // Human-readable format (MM:SS)
+      summary: String // VAD summary text
+    },
     // Review and quality
     reviewStatus: {
       type: String,

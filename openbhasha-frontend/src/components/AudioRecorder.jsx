@@ -141,6 +141,24 @@ const AudioRecorder = ({
     draw();
   };
 
+  // Get supported MIME type (prioritize M4A for better compression)
+  const getSupportedMimeType = () => {
+    const types = [
+      'audio/mp4;codecs=mp4a.40.2',  // M4A with AAC (best for voice)
+      'audio/webm;codecs=opus',       // WebM fallback
+      'audio/webm',                    // WebM simple fallback
+    ];
+    
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        console.log('Using audio format:', type);
+        return type;
+      }
+    }
+    console.warn('No preferred audio format supported, using default');
+    return '';
+  };
+
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -152,10 +170,16 @@ const AudioRecorder = ({
         },
       });
 
-      // Set up MediaRecorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "audio/webm;codecs=opus",
-      });
+      // Get supported MIME type
+      const mimeType = getSupportedMimeType();
+      
+      // Set up MediaRecorder with M4A support and 128kbps bitrate
+      const options = {
+        mimeType,
+        audioBitsPerSecond: 128000, // 128 kbps (15 min = ~14 MB)
+      };
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
 
       const audioChunks = [];
 
@@ -165,7 +189,7 @@ const AudioRecorder = ({
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, {
-          type: "audio/webm;codecs=opus",
+          type: mimeType || mediaRecorder.mimeType,
         });
         const audioUrl = URL.createObjectURL(audioBlob);
         dispatch(stopRecording({ audioBlob, audioUrl }));
