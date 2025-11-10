@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, IconButton, Button, LinearProgress, Alert } from '@mui/material';
 import { 
   Mic as MicIcon,
-  Pause as PauseIcon,
   PlayArrow as PlayIcon,
   Stop as StopIcon,
   SkipNext as SkipIcon,
@@ -21,7 +20,6 @@ export const MobileRecorder: React.FC<MobileRecorderProps> = ({
   session,
   onRecordingComplete,
   onSessionUpdate,
-  taskType,
 }) => {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
@@ -127,29 +125,7 @@ export const MobileRecorder: React.FC<MobileRecorderProps> = ({
     announceToScreenReader('Recording started');
   };
 
-  const pauseRecording = () => {
-    if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
-
-    mediaRecorder.pause();
-
-    // Update session state
-    const updatedSession = {
-      ...session,
-      state: 'paused' as RecordingState,
-      pausedTime: Date.now(),
-    };
-    onSessionUpdate(updatedSession);
-
-    // Pause timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-
-    stopAmplitudeMonitoring();
-
-    // Announce for accessibility
-    announceToScreenReader('Recording paused');
-  };
+  // Removed pauseRecording function - not currently used in the component
 
   const resumeRecording = () => {
     if (!mediaRecorder || mediaRecorder.state !== 'paused') return;

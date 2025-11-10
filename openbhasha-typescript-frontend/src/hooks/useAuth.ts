@@ -32,7 +32,6 @@ export const useAuth = () => {
     const initializeAuth = async () => {
       try {
         const storedUser = apiClient.getStoredUser();
-        const isAuthenticated = apiClient.isAuthenticated();
 
         // If we have a stored user, trust it and set as authenticated
         if (storedUser) {

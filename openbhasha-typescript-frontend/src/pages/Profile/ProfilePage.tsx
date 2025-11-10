@@ -77,8 +77,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 interface ProfileFormData {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   phone: string;
   location: string;
@@ -129,8 +128,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
 
   // Profile form state
   const [profileData, setProfileData] = useState<ProfileFormData>({
-    firstName: user.firstName,
-    lastName: user.lastName,
+    name: user.name,
     email: user.email,
     phone: '+91 98765 43210',
     location: 'Mumbai, India',
@@ -288,7 +286,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
               {uploadingAvatar ? (
                 <CircularProgress size={30} color="inherit" />
               ) : (
-                `${user.firstName[0]}${user.lastName[0]}`
+                user.name.split(' ').map(n => n[0]).join('').substring(0, 2)
               )}
             </Avatar>
             <IconButton
@@ -310,7 +308,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
           </Box>
 
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            {user.firstName} {user.lastName}
+            {user.name}
           </Typography>
           <Chip
             label={user.role.charAt(0).toUpperCase() + user.role.slice(1)}
@@ -357,30 +355,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
           </Box>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="First Name"
-                value={profileData.firstName}
-                onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-                disabled={!editingProfile}
-                InputProps={{
-                  startAdornment: <PersonIcon sx={{ mr: 1, color: 'action.active' }} />,
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  },
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={profileData.lastName}
-                onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                label="Full Name"
+                value={profileData.name}
+                onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                 disabled={!editingProfile}
                 InputProps={{
                   startAdornment: <PersonIcon sx={{ mr: 1, color: 'action.active' }} />,

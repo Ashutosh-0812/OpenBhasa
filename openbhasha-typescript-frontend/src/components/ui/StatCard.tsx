@@ -15,16 +15,8 @@ export const StatCard: React.FC<StatCardProps> = ({
   value,
   subtitle,
   icon,
-  color = 'primary',
   onClick,
 }) => {
-  const colorMap = {
-    primary: 'primary.main',
-    success: 'success.main',
-    warning: 'warning.main',
-    info: 'info.main',
-    error: 'error.main',
-  };
 
   return (
     <MuiCard

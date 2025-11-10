@@ -16,7 +16,6 @@ import { Add as AddIcon } from '@mui/icons-material';
 import { ProjectCard } from '@/components/projects/ProjectCard';
 import { User, Project } from '@/types';
 import { projectService } from '@/services/projectService';
-import { taskService } from '@/services/taskService';
 
 interface ProjectsPageProps {
   user: User;

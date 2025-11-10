@@ -39,7 +39,7 @@ export const TaskProgress: React.FC<TaskProgressProps> = ({ stats }) => {
   return (
     <Box sx={{ p: 2, backgroundColor: 'background.default' }}>
       <Grid container spacing={1}>
-        {statItems.map((item, index) => (
+        {statItems.map((item) => (
           <Grid item xs={3} key={item.label}>
             <Box
               sx={{

@@ -10,7 +10,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
   IconButton,
   Button,
@@ -28,7 +27,6 @@ import {
   Select,
   MenuItem,
   Grid,
-  Alert,
   Tooltip,
   Switch,
   FormControlLabel,
@@ -45,7 +43,6 @@ import {
   RateReview as ReviewerIcon,
   Work as ParticipantIcon,
   AdminPanelSettings as AdminIcon,
-  MoreVert as MoreIcon,
   Refresh as RefreshIcon,
   FileDownload as ExportIcon,
 } from '@mui/icons-material';
@@ -66,8 +63,7 @@ const mockUsers: AdminUser[] = [
   {
     id: '1',
     email: 'john.doe@example.com',
-    firstName: 'John',
-    lastName: 'Doe',
+    name: 'John Doe',
     role: 'student',
     isActive: true,
     status: 'active',
@@ -79,8 +75,7 @@ const mockUsers: AdminUser[] = [
   {
     id: '2',
     email: 'jane.smith@example.com',
-    firstName: 'Jane',
-    lastName: 'Smith',
+    name: 'Jane Smith',
     role: 'participant',
     isActive: true,
     status: 'active',
@@ -92,8 +87,7 @@ const mockUsers: AdminUser[] = [
   {
     id: '3',
     email: 'mike.wilson@example.com',
-    firstName: 'Mike',
-    lastName: 'Wilson',
+    name: 'Mike Wilson',
     role: 'reviewer',
     isActive: true,
     status: 'active',
@@ -105,8 +99,7 @@ const mockUsers: AdminUser[] = [
   {
     id: '4',
     email: 'sarah.johnson@example.com',
-    firstName: 'Sarah',
-    lastName: 'Johnson',
+    name: 'Sarah Johnson',
     role: 'student',
     isActive: false,
     status: 'inactive',
@@ -118,8 +111,7 @@ const mockUsers: AdminUser[] = [
   {
     id: '5',
     email: 'admin@example.com',
-    firstName: 'Admin',
-    lastName: 'User',
+    name: 'Admin User',
     role: 'admin',
     isActive: true,
     status: 'active',
@@ -137,7 +129,6 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ user }
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [editDialog, setEditDialog] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     filterUsers();
@@ -158,8 +149,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ user }
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(u => 
-        u.firstName.toLowerCase().includes(query) ||
-        u.lastName.toLowerCase().includes(query) ||
+        u.name.toLowerCase().includes(query) ||
         u.email.toLowerCase().includes(query)
       );
     }
@@ -277,7 +267,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ user }
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Refresh users">
-              <IconButton size="small" onClick={() => setLoading(true)}>
+              <IconButton size="small" onClick={() => filterUsers()}>
                 <RefreshIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -377,7 +367,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ user }
                           fontSize: '12px',
                         }}
                       >
-                        {usr.firstName[0]}{usr.lastName[0]}
+                        {usr.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                       </Avatar>
                       <Box>
                         <Typography
@@ -388,7 +378,7 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ user }
                             lineHeight: 1.2,
                           }}
                         >
-                          {usr.firstName} {usr.lastName}
+                          {usr.name}
                         </Typography>
                         <Typography
                           sx={{
@@ -591,15 +581,8 @@ export const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ user }
             <Box sx={{ mt: 1 }}>
               <TextField
                 fullWidth
-                label="First Name"
-                defaultValue={selectedUser.firstName}
-                size="small"
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                label="Last Name"
-                defaultValue={selectedUser.lastName}
+                label="Full Name"
+                defaultValue={selectedUser.name}
                 size="small"
                 sx={{ mb: 2 }}
               />

@@ -9,8 +9,6 @@ import {
   LinearProgress,
   List,
   ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   Avatar,
   Grid,
@@ -24,10 +22,6 @@ import {
   DialogActions,
   TextField,
   Rating,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   CircularProgress,
   Alert,
 } from '@mui/material';
@@ -40,10 +34,7 @@ import {
   CheckCircle as CheckIcon,
   Error as ErrorIcon,
   VolumeUp as AudioIcon,
-  Person as PersonIcon,
   Timer as TimerIcon,
-  Assessment as AssessmentIcon,
-  FilterList as FilterIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { User } from '@/types';
@@ -145,7 +136,7 @@ const mockAudioTasks: AudioTask[] = [
   },
 ];
 
-export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({ user }) => {
+export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = () => {
   // Use the dashboard hook to get real data
   const { stats, loading, error, refresh } = useDashboard();
   
@@ -430,7 +421,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({ user }) =>
           },
         }}
       >
-        {tabLabels.map((label, index) => (
+        {tabLabels.map((label) => (
           <Tab key={label} label={label} />
         ))}
       </Tabs>

@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Typography, IconButton } from '@mui/material';
 import { 
   ArrowBack as BackIcon,
-  SkipNext as SkipIcon,
   Info as InfoIcon 
 } from '@mui/icons-material';
 

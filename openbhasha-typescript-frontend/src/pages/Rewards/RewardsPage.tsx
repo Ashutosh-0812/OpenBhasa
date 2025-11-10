@@ -12,19 +12,14 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  Button,
-  Alert,
-  Paper,
 } from '@mui/material';
 import {
   Stars as StarsIcon,
-  EmojiEvents as TrophyIcon,
   TrendingUp as TrendingUpIcon,
   CheckCircle as CheckCircleIcon,
   Assignment as TaskIcon,
   Mic as RecordIcon,
   People as ShareIcon,
-  Speed as SpeedIcon,
 } from '@mui/icons-material';
 import '@fontsource/poppins/700.css';
 import { User } from '@/types';
@@ -137,11 +132,10 @@ const mockRecentEarnings: RecentEarning[] = [
   { activity: 'Referral bonus', coins: 50, time: 'Yesterday' },
 ];
 
-export const RewardsPage: React.FC<RewardsPageProps> = ({ user }) => {
-  const [userRewards, setUserRewards] = useState<UserRewards>(mockUserRewards);
-  const [achievements, setAchievements] = useState<Achievement[]>(mockAchievements);
-  const [recentEarnings, setRecentEarnings] = useState<RecentEarning[]>(mockRecentEarnings);
-  const [loading, setLoading] = useState(false);
+export const RewardsPage: React.FC<RewardsPageProps> = () => {
+  const [userRewards] = useState<UserRewards>(mockUserRewards);
+  const [achievements] = useState<Achievement[]>(mockAchievements);
+  const [recentEarnings] = useState<RecentEarning[]>(mockRecentEarnings);
 
   useEffect(() => {
     // Fetch user rewards data
@@ -149,7 +143,6 @@ export const RewardsPage: React.FC<RewardsPageProps> = ({ user }) => {
   }, []);
 
   const fetchRewardsData = async () => {
-    setLoading(true);
     try {
       // API call would go here
       // const data = await rewardsAPI.getUserRewards(user.id);
@@ -158,8 +151,6 @@ export const RewardsPage: React.FC<RewardsPageProps> = ({ user }) => {
       // setRecentEarnings(data.recentEarnings);
     } catch (error) {
       console.error('Failed to fetch rewards data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
