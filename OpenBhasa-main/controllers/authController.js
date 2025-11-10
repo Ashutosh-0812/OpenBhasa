@@ -3,6 +3,7 @@ const Token = require('../models/Token')
 const { generateTokens, generateResetToken } = require('../utils/generateToken')
 const sendEmail = require('../utils/sendEmail')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs') // For temporary double-hash fix
 
 // Register user
 const register = async (req, res) => {
@@ -21,18 +22,19 @@ const register = async (req, res) => {
 
     const { accessToken, refreshToken } = await generateTokens(user._id)
 
-    // Set cookies
+    // Set cookies with proper settings for development
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000 // 15 minutes
     })
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
 
@@ -79,27 +81,42 @@ const login = async (req, res) => {
 
     const user = await User.findOne({ email })
     if (!user) {
+      console.log('❌ Login failed: User not found for email:', email);
       return res.status(400).json({ message: 'Invalid credentials' })
+    }
+
+    console.log('🔍 Login attempt for user:', user.name, 'role:', user.role);
+
+    // Block participant login through regular login page
+    if (user.role === 'participant') {
+      console.log('❌ Participant login blocked - must use invitation link');
+      return res.status(400).json({ 
+        message: 'Participants must use their invitation link to login. Please contact the student who invited you.' 
+      })
     }
 
     const isMatch = await user.comparePassword(password)
     if (!isMatch) {
+      console.log('❌ Login failed: Password mismatch for user:', user.email);
       return res.status(400).json({ message: 'Invalid credentials' })
     }
 
+    console.log('✅ Login successful for user:', user.name, 'role:', user.role);
+
     const { accessToken, refreshToken } = await generateTokens(user._id)
 
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000
     })
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     })
 

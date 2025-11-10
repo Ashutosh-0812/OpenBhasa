@@ -1,0 +1,25 @@
+{
+  "name": "Bolo Speech Recorder",
+  "short_name": "Bolo",
+  "description": "Mobile-first web app for speech audio collection with role-based access",
+  "theme_color": "#136E1B",
+  "background_color": "#F1F6F1",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

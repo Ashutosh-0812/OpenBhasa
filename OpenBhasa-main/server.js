@@ -10,6 +10,8 @@ const taskRoutes = require('./routes/taskRoutes');
 const recordingRoutes = require('./routes/recordingRoutes');
 const taskRequestRoutes = require('./routes/taskRequestRoutes');
 const userRoutes = require('./routes/userRoutes');
+const participantInviteRoutes = require('./routes/participantInviteRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const app = express();
 
@@ -64,13 +66,15 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/recordings', recordingRoutes);
 app.use('/api/task-requests', taskRequestRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/participant-invites', participantInviteRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Home route
 app.get('/', (req, res) => {
   res.json({ message: 'Authentication API is running' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

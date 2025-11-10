@@ -41,6 +41,10 @@ const projectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     }],
+    assignedUsers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
     guidelines: {
       type: String,
       maxlength: [5000, 'Guidelines cannot exceed 5000 characters']

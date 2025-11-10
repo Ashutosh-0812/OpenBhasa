@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 // @desc    Create new task
 // @route   POST /api/tasks
-// @access  Admin only
+// @access  Admin and Students
 const createTask = async (req, res) => {
   try {
     const {
@@ -27,6 +27,15 @@ const createTask = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    // Check if student can create tasks for this project
+    if (req.user.role === 'student') {
+      if (projectDoc.createdBy.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ 
+          message: 'Students can only create tasks for their own projects' 
+        });
+      }
+    }
+
     const task = await Task.create({
       project,
       title,
@@ -40,13 +49,27 @@ const createTask = async (req, res) => {
       targetRecordings,
       tags,
       priority,
-      status: 'active'
+      status: 'active',
+      createdBy: req.user._id
     });
 
     // Update project task count
     await Project.findByIdAndUpdate(project, {
       $inc: { 'metadata.totalTasks': 1 }
     });
+
+    // Auto-assign task to project's assigned users
+    const projectWithUsers = await Project.findById(project).select('assignedUsers');
+    if (projectWithUsers && projectWithUsers.assignedUsers && projectWithUsers.assignedUsers.length > 0) {
+      console.log('🎯 Auto-assigning task to project users:', projectWithUsers.assignedUsers);
+      const userAssignments = projectWithUsers.assignedUsers.map(userId => ({
+        user: userId,
+        assignedAt: new Date()
+      }));
+      task.assignedTo = userAssignments;
+      await task.save();
+      console.log('✅ Task auto-assigned to', userAssignments.length, 'users');
+    }
 
     const populatedTask = await Task.findById(task._id).populate('project', 'title language');
 
@@ -161,13 +184,22 @@ const getTask = async (req, res) => {
 
 // @desc    Update task
 // @route   PUT /api/tasks/:id
-// @access  Admin only
+// @access  Admin and Students (for their own projects)
 const updateTask = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findById(req.params.id).populate('project');
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check if student can update this task (only for their own projects)
+    if (req.user.role === 'student') {
+      if (task.project.createdBy.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ 
+          message: 'Students can only update tasks for their own projects' 
+        });
+      }
     }
 
     const {
@@ -216,13 +248,22 @@ const updateTask = async (req, res) => {
 
 // @desc    Delete task
 // @route   DELETE /api/tasks/:id
-// @access  Admin only
+// @access  Admin and Students (for their own projects)
 const deleteTask = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findById(req.params.id).populate('project');
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check if student can delete this task (only for their own projects)
+    if (req.user.role === 'student') {
+      if (task.project.createdBy.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ 
+          message: 'Students can only delete tasks for their own projects' 
+        });
+      }
     }
 
     // Check if task has recordings
